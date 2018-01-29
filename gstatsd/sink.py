@@ -27,7 +27,7 @@ class Sink(object):
                 return (parts[0], int(parts[1]))
             if len(parts) == 1:
                 return ('', int(parts[0]))
-        except ValueError, ex:
+        except ValueError as ex:
             raise ValueError(E_BADSPEC % (spec, ex))
         raise ValueError("expected '[host]:port' but got %r" % spec)
 
@@ -103,5 +103,5 @@ class GraphiteSink(Sink):
                 sock = socket.create_connection(host)
                 sock.sendall(buf.getvalue())
                 sock.close()
-            except Exception, ex:
+            except Exception as ex:
                 self.error(E_SENDFAIL % ('graphite', host, ex))

@@ -16,9 +16,10 @@ import sink
 from core import __version__
 
 # vendor
-import gevent, gevent.socket
+import gevent
+import gevent.socket
 socket = gevent.socket
-# protect stats  
+# protect stats
 from gevent.thread import allocate_lock as Lock
 stats_lock = Lock()
 
@@ -68,7 +69,7 @@ def daemonize(umask=0027):
     for fd in xrange(0, fd_limit):
         try:
             os.close(fd)
-        except:
+        except Exception:
             pass
     os.open(os.devnull, os.O_RDWR)
     os.dup2(0, 1)
@@ -81,7 +82,7 @@ def parse_addr(text):
     if text:
         parts = text.split(':')
         length = len(parts)
-        if length== 3:
+        if length == 3:
             return parts[0], parts[1], int(parts[2])
         elif length == 2:
             return None, parts[0], int(parts[1])
@@ -115,7 +116,7 @@ class StatsDaemon(object):
         for spec in sinkspecs:
             try:
                 self._sink.add(spec)
-            except ValueError, ex:
+            except ValueError as ex:
                 errors.append(ex)
         if errors:
             for err in errors:
@@ -162,15 +163,16 @@ class StatsDaemon(object):
                 # the stats packet to one or more hosts.
                 try:
                     self._sink.send(stats)
-                except Exception, ex:
+                except Exception as ex:
                     trace = traceback.format_tb(sys.exc_info()[-1])
                     self.error(''.join(trace))
 
         self._flush_task = gevent.spawn(_flush_impl)
 
         # start accepting connections
-        self._sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM,
-            socket.IPPROTO_UDP)
+        self._sock = socket.socket(socket.AF_INET,
+                                   socket.SOCK_DGRAM,
+                                   socket.IPPROTO_UDP)
         self._sock.bind(self._bindaddr)
         while 1:
             try:
@@ -178,7 +180,7 @@ class StatsDaemon(object):
                 for p in data.split('\n'):
                     if p:
                         self._process(p)
-            except Exception, ex:
+            except Exception as ex:
                 self.error(str(ex))
 
     def _shutdown(self):
